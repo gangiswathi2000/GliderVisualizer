@@ -1,0 +1,111 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gliders Tracker</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+    height: 70vh;
+    width: 100%;
+     }
+#plot-section {
+    min-height: 300px;
+    max-height: 50vh;
+    overflow: auto;
+}
+        
+
+    </style>
+</head>
+
+<body>
+
+     <div id="map"></div>
+    <div id="plot-section" style="display:none; width:100%; background:#fff; border-top:2px solid #333; padding:20px;">
+      <button id="back-to-map" style="float:right; font-size:10px;">&larr; Back to Map</button>
+      <h3>Glider Data Plot</h3>
+      <div id="plot-container"></div>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script>
+        var map = L.map('map', {
+            center: [20, 0],
+            zoom: 2,
+            layers: []
+        });
+        const gliderIcons = {
+            SeaGlider1: L.icon({ iconUrl: "{% static 'images/SeaGlider_607.jpeg' %}", iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -20] }),
+            SeaGlider2: L.icon({ iconUrl: "{% static 'images/SeaGlider_646.jpeg' %}", iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -20] }),
+            SeaGlider3: L.icon({ iconUrl: "{% static 'images/SeaGlider_686.jpeg' %}", iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -20] }),
+            SlocumGlider1: L.icon({ iconUrl: "{% static 'images/SlocumGlider.jpeg' %}", iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -20] }),
+            SlocumGlider2: L.icon({ iconUrl: "{% static 'images/SlocumGlider.jpeg' %}", iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -20] })
+        };
+        var mapboxOSM = L.tileLayer('https://server.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri and data providers'
+        });
+
+        var mapboxOcean = L.tileLayer('https://server.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri and data providers'
+        }); 
+
+    
+       var oceanWithLabels = L.layerGroup([mapboxOcean, mapboxOSM]);
+        oceanWithLabels.addTo(map); 
+        fetch('/gliderdata/')
+          .then(response => response.json())
+          .then(data => {
+            data.forEach((glider, index) => {
+              const marker = L.marker([glider.latitude, glider.longitude], {
+                icon: gliderIcons.SeaGlider1
+              }).addTo(map);
+
+              marker.on('click', function () {
+                handleMarkerClick(glider.latitude, glider.longitude);
+              });
+            });
+          })
+          .catch(err => {
+            console.error("Failed to load glider data:", err);
+          });
+
+         function handleMarkerClick(lat, lon) {
+          fetch(`/plot-glider-data/?lat=${lat}&lon=${lon}`)
+            .then(res => res.json())
+            .then(data => {
+              document.getElementById('map').style.display = 'none';
+              document.getElementById('plot-section').style.display = 'block';
+              const container = document.getElementById('plot-container');
+              container.innerHTML = data.plot_html;
+              const scripts = container.getElementsByTagName('script');
+              for (let i = 0; i < scripts.length; i++) {
+                const newScript = document.createElement('script');
+                newScript.text = scripts[i].text;
+                document.body.appendChild(newScript);
+              }
+            })
+            .catch(err => console.error("Plot load error:", err));
+        }
+
+        document.getElementById('back-to-map').onclick = function() {
+          document.getElementById('plot-section').style.display = 'none';
+          document.getElementById('map').style.display = 'block';
+        };
+    </script>
+
+
+</body>
+
+</html>
