@@ -33,8 +33,8 @@ def plot_glider_data(request):
     fig = px.scatter(
         df,
         x="timestamp",
-        y="depth",
-        color="temperature",
+        y="depth (m)",
+        color="temperature (°C)",
         size="salinity",
         hover_data=["oxygen", "cdom"],
         title="Glider Profile: Depth vs Time",
