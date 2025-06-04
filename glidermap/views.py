@@ -39,7 +39,7 @@ def plot_glider_data(request):
         hover_data=["oxygen", "cdom"],
         title="Glider Profile: Depth vs Time",
     )
-    fig.update_layout(height=600)
+    fig.update_layout(width=700, height=700)
     return JsonResponse({'plot_html': fig.to_html(full_html=False)})
 def glider_locations(request):
     glider_loc= list(GliderMeasurement.objects.values('latitude','longitude').distinct())
