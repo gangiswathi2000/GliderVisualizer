@@ -1,5 +1,10 @@
+__pycache__/
+*.py[cod]
+myenv/
 .env
-__pycache__
-*.pyc
+*.sqlite3
 db.sqlite3
-.DS_StoreOceanGliderTracker/settings.py
+.vscode/
+.DS_Store
+staticfiles/
+.pytest_cache/
